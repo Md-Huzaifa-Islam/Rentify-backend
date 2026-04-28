@@ -4,5 +4,7 @@
 /build
 *.log
 *.tsbuildinfo
-.env.*
+.env*
 .vercel
+
+/generated/prisma
