@@ -8,6 +8,7 @@ const env = z.object({
   NODE_ENV: z.string().default("development"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   BETTER_AUTH_URL: z.string().min(1, "Frontend url is required"),
+  BETTER_AUTH_SECRET: z.string().min(1, "Better auth secret is required"),
 });
 
 const envParsed = env.safeParse(process.env);
@@ -24,4 +25,5 @@ export const envVars = {
   NODE_ENV: envParsed.data.NODE_ENV,
   DATABASE_URL: envParsed.data.DATABASE_URL,
   FRONTEND_URL: envParsed.data.BETTER_AUTH_URL,
+  BETTER_AUTH_SECRET: envParsed.data.BETTER_AUTH_SECRET,
 };

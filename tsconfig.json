@@ -7,7 +7,8 @@
     "esModuleInterop": true,
     "ignoreDeprecations": "6.0",
     "outDir": "./dist",
-    "rootDir": "./"
+    "rootDir": "./",
+    "skipLibCheck": true
   },
   "include": ["src/**/*", "prisma.config.ts", "generated/prisma/**/*"],
   "exclude": ["node_modules", "dist"]

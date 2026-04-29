@@ -3,6 +3,7 @@ import { errorHandler } from "./handlers/errorHandler";
 import { notFoundHandler } from "./handlers/notFoundHandler";
 import cors from "cors";
 import { envVars } from "./config/envVars";
+import { sendResponse } from "./handlers/sendResponse";
 const app = express();
 
 // middlewares
@@ -15,7 +16,10 @@ app.use(
 );
 
 app.get("/", async (req: Request, res: Response, next: NextFunction) => {
-  res.send("Hello World!");
+  sendResponse(res, {
+    statusCode: 200,
+    message: "Welcome to Better Auth API!",
+  });
 });
 
 // not found handlers
