@@ -5,7 +5,7 @@ import { UserRole } from "../../generated/prisma/enums";
 import { envVars } from "../config/envVars";
 import ms, { StringValue } from "ms";
 
-const refreshExpiry = ms(envVars.REFRESH_TOKEN_EXPIRATION as StringValue);
+const refreshExpiry = ms("7d" as StringValue);
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {

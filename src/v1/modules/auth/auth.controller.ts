@@ -16,13 +16,9 @@ import { JwtHandlers } from "../../../handlers/cookiesHandlers/jwt";
 
 const isProduction = envVars.NODE_ENV === "production";
 const refreshExpiry =
-  typeof ms(envVars.REFRESH_TOKEN_EXPIRATION as StringValue) === "number"
-    ? ms(envVars.REFRESH_TOKEN_EXPIRATION as StringValue)
+  typeof ms("7d" as StringValue) === "number"
+    ? ms("7d" as StringValue)
     : 604800000;
-const accessExpiry =
-  typeof ms(envVars.ACCESS_TOKEN_EXPIRATION as StringValue) === "number"
-    ? ms(envVars.ACCESS_TOKEN_EXPIRATION as StringValue)
-    : 3600000;
 
 const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
