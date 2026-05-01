@@ -3,13 +3,18 @@ import { UserRole } from "../../generated/prisma/enums";
 import { prisma } from "./prisma";
 
 const refreshExpiry = ms("7d" as StringValue);
+const importEsm = new Function("modulePath", "return import(modulePath);") as (
+  modulePath: string,
+) => Promise<any>;
 
 let auth: any;
 
 export async function getAuth() {
   if (!auth) {
-    const { betterAuth } = await import("better-auth");
-    const { prismaAdapter } = await import("better-auth/adapters/prisma");
+    const [{ betterAuth }, { prismaAdapter }] = await Promise.all([
+      importEsm("better-auth"),
+      importEsm("better-auth/adapters/prisma"),
+    ]);
     auth = betterAuth({
       database: prismaAdapter(prisma, {
         provider: "postgresql", // or "mysql", "postgresql", ...etc
@@ -24,7 +29,13 @@ export async function getAuth() {
       },
       emailVerification: {
         sendOnSignUp: true,
-        async sendVerificationEmail({ user, url }) {
+        async sendVerificationEmail({
+          user,
+          url,
+        }: {
+          user: { email: string };
+          url: string;
+        }) {
           // TODO: replace with real mail provider (Resend/SendGrid/SMTP)
           console.log(`Verification email for ${user.email}: ${url}`);
         },
