@@ -1,5 +1,11 @@
 {
   "functions": {
+    "src/server.ts": {
+      "includeFiles": "node_modules/**/better-auth/**"
+    },
+    "src/server.js": {
+      "includeFiles": "node_modules/**/better-auth/**"
+    },
     "src/**/*.ts": {
       "includeFiles": "node_modules/**/better-auth/**"
     },

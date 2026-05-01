@@ -11,6 +11,10 @@ let auth: any;
 
 export async function getAuth() {
   if (!auth) {
+    // Hint the deployment tracer to bundle these ESM packages.
+    require.resolve("better-auth/package.json");
+    require.resolve("better-auth/adapters/prisma");
+
     const [{ betterAuth }, { prismaAdapter }] = await Promise.all([
       importEsm("better-auth"),
       importEsm("better-auth/adapters/prisma"),
