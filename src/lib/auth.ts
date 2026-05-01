@@ -2,7 +2,10 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 import { UserRole } from "../../generated/prisma/enums";
-// If your Prisma file is located elsewhere, you can change the path
+import { envVars } from "../config/envVars";
+import ms, { StringValue } from "ms";
+
+const refreshExpiry = ms(envVars.REFRESH_TOKEN_EXPIRATION as StringValue);
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -12,7 +15,10 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
   },
-
+  session: {
+    expiresIn:
+      typeof refreshExpiry === "number" ? refreshExpiry / 1000 : 604800,
+  },
   emailVerification: {
     sendOnSignUp: true,
     async sendVerificationEmail({ user, url }) {

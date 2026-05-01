@@ -9,6 +9,16 @@ const env = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   BETTER_AUTH_URL: z.string().min(1, "Frontend url is required"),
   BETTER_AUTH_SECRET: z.string().min(1, "Better auth secret is required"),
+  ACCESS_TOKEN_SECRET: z.string().min(1, "Access token secret is required"),
+  REFRESH_TOKEN_SECRET: z.string().min(1, "Refresh token secret is required"),
+  ACCESS_TOKEN_EXPIRATION: z
+    .string()
+    .min(1, "Access token expiration is required")
+    .default("30m"),
+  REFRESH_TOKEN_EXPIRATION: z
+    .string()
+    .min(1, "Refresh token expiration is required")
+    .default("7d"),
 });
 
 const envParsed = env.safeParse(process.env);
@@ -26,4 +36,8 @@ export const envVars = {
   DATABASE_URL: envParsed.data.DATABASE_URL,
   FRONTEND_URL: envParsed.data.BETTER_AUTH_URL,
   BETTER_AUTH_SECRET: envParsed.data.BETTER_AUTH_SECRET,
+  ACCESS_TOKEN_SECRET: envParsed.data.ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_SECRET: envParsed.data.REFRESH_TOKEN_SECRET,
+  ACCESS_TOKEN_EXPIRATION: envParsed.data.ACCESS_TOKEN_EXPIRATION,
+  REFRESH_TOKEN_EXPIRATION: envParsed.data.REFRESH_TOKEN_EXPIRATION,
 };

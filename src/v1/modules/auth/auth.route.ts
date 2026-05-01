@@ -6,11 +6,11 @@ const router: IRouter = Router();
 // login route
 router.post("/login", AuthControllers.login);
 
+// logout route
+router.get("/logout", AuthControllers.logout);
+
 // register route
 router.post("/register", AuthControllers.register);
-
-// refresh token route
-router.post("/refresh-token", AuthControllers.refreshToken);
 
 // verify email route
 router.get("/verify-email", AuthControllers.verifyEmail);
