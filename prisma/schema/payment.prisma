@@ -1,0 +1,185 @@
+// ============================================
+// Payment System & Financial Transactions
+// ============================================
+
+// ============================================
+// Payment Schedule for Cron Jobs
+// ============================================
+
+enum PaymentScheduleStatus {
+    pending   @map("PENDING")
+    paid      @map("PAID")
+    overdue   @map("OVERDUE")
+    cancelled @map("CANCELLED")
+    waived    @map("WAIVED")
+}
+
+enum PaymentScheduleType {
+    rent             @map("RENT")
+    security_deposit @map("SECURITY_DEPOSIT")
+    late_fee         @map("LATE_FEE")
+    utility          @map("UTILITY")
+    maintenance      @map("MAINTENANCE")
+    other            @map("OTHER")
+}
+
+model PaymentSchedule {
+    id                 String                @id
+    leaseId            String
+    type               PaymentScheduleType   @default(rent)
+    status             PaymentScheduleStatus @default(pending)
+    dueDate            DateTime
+    amount             Decimal               @db.Decimal(10, 2)
+    paidAmount         Decimal               @default(0) @db.Decimal(10, 2)
+    lateFee            Decimal               @default(0) @db.Decimal(10, 2)
+    description        String?
+    periodStart        DateTime? // For rent: billing period start
+    periodEnd          DateTime? // For rent: billing period end
+    paymentId          String?               @unique // Link to actual payment when paid
+    markedOverdueAt    DateTime?
+    paidAt             DateTime?
+    cancelledAt        DateTime?
+    cancellationReason String?
+    waivedAt           DateTime?
+    waiverReason       String?
+    reminderSentAt     DateTime?
+    reminderCount      Int                   @default(0)
+    createdAt          DateTime              @default(now())
+    updatedAt          DateTime              @updatedAt
+    lease              Lease                 @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+    payment            Payments?             @relation(fields: [paymentId], references: [id])
+
+    @@index([leaseId])
+    @@index([status])
+    @@index([dueDate])
+    @@index([type])
+    @@index([dueDate, status]) // Compound index for cron queries
+    @@map("payment_schedules")
+}
+
+// ============================================
+// Actual Payment Transactions
+// ============================================
+
+enum PaymentStatus {
+    pending    @map("PENDING")
+    processing @map("PROCESSING")
+    completed  @map("COMPLETED")
+    failed     @map("FAILED")
+    refunded   @map("REFUNDED")
+    disputed   @map("DISPUTED")
+}
+
+enum PaymentMethod {
+    credit_card   @map("CREDIT_CARD")
+    debit_card    @map("DEBIT_CARD")
+    paypal        @map("PAYPAL")
+    bank_transfer @map("BANK_TRANSFER")
+    cash          @map("CASH")
+    check         @map("CHECK")
+    mobile_money  @map("MOBILE_MONEY")
+    other         @map("OTHER")
+}
+
+enum PaymentType {
+    rent             @map("RENT")
+    security_deposit @map("SECURITY_DEPOSIT")
+    late_fee         @map("LATE_FEE")
+    utility          @map("UTILITY")
+    maintenance      @map("MAINTENANCE")
+    refund           @map("REFUND")
+    other            @map("OTHER")
+}
+
+model Payments {
+    id                  String           @id
+    leaseId             String?
+    payerId             String // The tenant or user making payment
+    receiverId          String // The landlord receiving payment
+    type                PaymentType      @default(rent)
+    amount              Decimal          @db.Decimal(10, 2)
+    processingFee       Decimal          @default(0) @db.Decimal(10, 2)
+    netAmount           Decimal          @db.Decimal(10, 2) // amount - processingFee
+    transactionId       String?          @unique // From payment gateway
+    externalReferenceId String? // Additional reference from gateway
+    status              PaymentStatus    @default(pending)
+    method              PaymentMethod?
+    paymentGateway      String? // stripe, paypal, etc.
+    paymentDetails      Json?            @db.JsonB // Gateway-specific data
+    receiptUrl          String?
+    receiptNumber       String?          @unique
+    description         String?
+    dueDate             DateTime?
+    paymentDate         DateTime?
+    processedAt         DateTime?
+    failedAt            DateTime?
+    failureReason       String?
+    refundedAt          DateTime?
+    refundReason        String?
+    refundAmount        Decimal?         @db.Decimal(10, 2)
+    disputedAt          DateTime?
+    disputeReason       String?
+    disputeResolution   String?
+    metadata            Json?            @db.JsonB
+    createdAt           DateTime         @default(now())
+    updatedAt           DateTime         @updatedAt
+    lease               Lease?           @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+    payer               User             @relation("PaymentInitiator", fields: [payerId], references: [id], onDelete: Restrict)
+    receiver            User             @relation("PaymentReceiver", fields: [receiverId], references: [id], onDelete: Restrict)
+    paymentSchedule     PaymentSchedule?
+
+    @@index([leaseId])
+    @@index([payerId])
+    @@index([receiverId])
+    @@index([status])
+    @@index([type])
+    @@index([paymentDate])
+    @@index([dueDate])
+    @@index([transactionId])
+    @@index([receiptNumber])
+    @@map("payments")
+}
+
+// ============================================
+// Security Deposit Tracking
+// ============================================
+
+enum SecurityDepositStatus {
+    pending        @map("PENDING")
+    paid           @map("PAID")
+    held           @map("HELD")
+    refunded       @map("REFUNDED")
+    partial_refund @map("PARTIAL_REFUND")
+    forfeited      @map("FORFEITED")
+}
+
+model SecurityDeposit {
+    id               String                @id
+    leaseId          String                @unique
+    tenantId         String
+    amount           Decimal               @db.Decimal(10, 2)
+    status           SecurityDepositStatus @default(pending)
+    paidDate         DateTime?
+    paymentId        String?
+    heldInAccount    String? // Bank account details where held
+    refundAmount     Decimal?              @db.Decimal(10, 2)
+    refundDate       DateTime?
+    refundPaymentId  String?
+    deductionAmount  Decimal               @default(0) @db.Decimal(10, 2)
+    deductionReason  String?
+    deductionDetails Json?                 @db.JsonB
+    inspectionNotes  String?
+    inspectionDate   DateTime?
+    inspectionPhotos Json?                 @db.JsonB
+    forfeitureReason String?
+    forfeitedAt      DateTime?
+    createdAt        DateTime              @default(now())
+    updatedAt        DateTime              @updatedAt
+    lease            Lease                 @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+    tenant           User                  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+    @@index([leaseId])
+    @@index([tenantId])
+    @@index([status])
+    @@map("security_deposits")
+}

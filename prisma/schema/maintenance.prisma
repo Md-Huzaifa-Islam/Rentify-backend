@@ -1,0 +1,78 @@
+// ============================================
+// Maintenance Requests & Work Orders
+// ============================================
+
+enum MaintenanceRequestStatus {
+    submitted    @map("SUBMITTED")
+    acknowledged @map("ACKNOWLEDGED")
+    in_progress  @map("IN_PROGRESS")
+    completed    @map("COMPLETED")
+    cancelled    @map("CANCELLED")
+}
+
+enum MaintenanceRequestPriority {
+    low       @map("LOW")
+    medium    @map("MEDIUM")
+    high      @map("HIGH")
+    emergency @map("EMERGENCY")
+}
+
+enum MaintenanceRequestCategory {
+    plumbing   @map("PLUMBING")
+    electrical @map("ELECTRICAL")
+    hvac       @map("HVAC")
+    appliance  @map("APPLIANCE")
+    structural @map("STRUCTURAL")
+    pest       @map("PEST")
+    cleaning   @map("CLEANING")
+    security   @map("SECURITY")
+    other      @map("OTHER")
+}
+
+model MaintenanceRequest {
+    id                     String                     @id
+    leaseId                String?
+    unitId                 String?
+    propertyId             String?
+    requesterId            String
+    title                  String
+    description            String
+    category               MaintenanceRequestCategory
+    priority               MaintenanceRequestPriority @default(medium)
+    status                 MaintenanceRequestStatus   @default(submitted)
+    preferredDate          DateTime?
+    preferredTime          String?
+    estimatedCost          Decimal?                   @db.Decimal(10, 2)
+    actualCost             Decimal?                   @db.Decimal(10, 2)
+    assignedTo             String? // Vendor/contractor
+    assignedAt             DateTime?
+    scheduledDate          DateTime?
+    scheduledTime          String?
+    startedAt              DateTime?
+    completedAt            DateTime?
+    cancelledAt            DateTime?
+    cancellationReason     String?
+    completionNotes        String?
+    tenantNotes            String?
+    landlordNotes          String?
+    internalNotes          String?
+    photos                 Json?                      @db.JsonB
+    requiresEntry          Boolean                    @default(true)
+    tenantPresenceRequired Boolean                    @default(false)
+    createdAt              DateTime                   @default(now())
+    updatedAt              DateTime                   @updatedAt
+    lease                  Lease?                     @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+    unit                   Unit?                      @relation(fields: [unitId], references: [id], onDelete: SetNull)
+    property               Properties?                @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+    requester              User                       @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+
+    @@index([leaseId])
+    @@index([unitId])
+    @@index([propertyId])
+    @@index([requesterId])
+    @@index([status])
+    @@index([priority])
+    @@index([category])
+    @@index([createdAt])
+    @@map("maintenance_requests")
+}

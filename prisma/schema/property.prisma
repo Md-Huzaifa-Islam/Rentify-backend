@@ -1,0 +1,149 @@
+// ============================================
+// Property & Unit Management
+// ============================================
+
+enum PropertyType {
+    apartment  @map("APARTMENT")
+    house      @map("HOUSE")
+    commercial @map("COMMERCIAL")
+    hostel     @map("HOSTEL")
+    sublet     @map("SUBLET")
+}
+
+enum PropertyStatus {
+    draft       @map("DRAFT")
+    active      @map("ACTIVE")
+    inactive    @map("INACTIVE")
+    maintenance @map("MAINTENANCE")
+    archived    @map("ARCHIVED")
+}
+
+model Properties {
+    id                  String               @id
+    ownerId             String
+    title               String
+    description         String?
+    propertyType        PropertyType
+    status              PropertyStatus       @default(draft)
+    country             String
+    state               String?
+    city                String
+    address             String
+    area                String
+    postalCode          String?
+    latitude            Decimal              @db.Decimal(10, 7)
+    longitude           Decimal              @db.Decimal(10, 7)
+    hasParking          Boolean              @default(false)
+    parkingSpaces       Int                  @default(0)
+    hasSecurity         Boolean              @default(false)
+    securityType        String?
+    hasElevator         Boolean              @default(false)
+    hasGenerator        Boolean              @default(false)
+    hasWater            Boolean              @default(true)
+    waterSupplyType     String?
+    hasGarbageDisposal  Boolean              @default(false)
+    hasCCTV             Boolean              @default(false)
+    hasGym              Boolean              @default(false)
+    hasPool             Boolean              @default(false)
+    petPolicy           String?
+    smokingPolicy       String?
+    others              Json?                @db.JsonB
+    buildYear           Int?
+    lastRenovationYear  Int?
+    totalFloors         Int?
+    deletedAt           DateTime?
+    createdAt           DateTime             @default(now())
+    updatedAt           DateTime             @updatedAt
+    owner               User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    units               Unit[]
+    maintenanceRequests MaintenanceRequest[]
+
+    @@index([ownerId])
+    @@index([status])
+    @@index([city, area])
+    @@index([propertyType])
+    @@index([latitude, longitude])
+    @@index([deletedAt])
+    @@map("properties")
+}
+
+enum UnitStatus {
+    available   @map("AVAILABLE")
+    occupied    @map("OCCUPIED")
+    reserved    @map("RESERVED")
+    maintenance @map("MAINTENANCE")
+    inactive    @map("INACTIVE")
+}
+
+model Unit {
+    id                  String               @id
+    propertyId          String
+    title               String
+    description         String?
+    unitNumber          String?
+    floor               Int?
+    squareFootage       Decimal?             @db.Decimal(10, 2)
+    status              UnitStatus           @default(available)
+    monthlyRent         Decimal              @db.Decimal(10, 2)
+    securityDeposit     Decimal              @db.Decimal(10, 2)
+    roomCount           Int
+    bathroomCount       Int
+    kitchenCount        Int                  @default(1)
+    hasBalcony          Boolean              @default(false)
+    balconyCount        Int                  @default(0)
+    hasFurnished        Boolean              @default(false)
+    furnishingDetails   Json?                @db.JsonB
+    hasAirConditioning  Boolean              @default(false)
+    hasHeating          Boolean              @default(false)
+    hasInternet         Boolean              @default(false)
+    hasLaundry          Boolean              @default(false)
+    laundryType         String?
+    hasPetAllowed       Boolean              @default(false)
+    petPolicy           String?
+    hasSmokingAllowed   Boolean              @default(false)
+    hasWheelchairAccess Boolean              @default(false)
+    hasStorage          Boolean              @default(false)
+    storageSize         String?
+    availableFrom       DateTime?
+    minimumLeaseTerm    Int                  @default(6) // months
+    maximumLeaseTerm    Int?
+    utilities           Json?                @db.JsonB // which utilities are included
+    deletedAt           DateTime?
+    createdAt           DateTime             @default(now())
+    updatedAt           DateTime             @updatedAt
+    property            Properties           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    unitAttachments     UnitAttachment[]
+    viewingRequests     ViewingRequest[]
+    leases              Lease[]
+    maintenanceRequests MaintenanceRequest[]
+
+    @@index([propertyId])
+    @@index([status])
+    @@index([monthlyRent])
+    @@index([availableFrom])
+    @@index([deletedAt])
+    @@map("units")
+}
+
+enum AttachmentType {
+    image    @map("IMAGE")
+    video    @map("VIDEO")
+    document @map("DOCUMENT")
+    other    @map("OTHER")
+}
+
+model UnitAttachment {
+    id           String         @id
+    unitId       String
+    url          String
+    type         AttachmentType @default(other)
+    caption      String?
+    displayOrder Int            @default(0)
+    createdAt    DateTime       @default(now())
+    updatedAt    DateTime       @updatedAt
+    unit         Unit           @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+    @@index([unitId])
+    @@index([type])
+    @@map("unit_attachments")
+}

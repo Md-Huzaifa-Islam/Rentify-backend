@@ -1,0 +1,107 @@
+// ============================================
+// User Management & Profiles
+// ============================================
+
+enum UserRole {
+    superadmin @map("SUPERADMIN")
+    admin      @map("ADMIN")
+    moderator  @map("MODERATOR")
+    landlord   @map("LANDLORD")
+    tenant     @map("TENANT")
+}
+
+enum UserStatus {
+    active    @map("ACTIVE")
+    inactive  @map("INACTIVE")
+    banned    @map("BANNED")
+    suspended @map("SUSPENDED")
+}
+
+model User {
+    id                  String               @id
+    name                String
+    email               String
+    role                UserRole             @default(tenant)
+    status              UserStatus           @default(active)
+    emailVerified       Boolean              @default(false)
+    needsPasswordReset  Boolean              @default(false)
+    image               String?
+    lastLoginAt         DateTime?
+    createdAt           DateTime             @default(now())
+    updatedAt           DateTime             @updatedAt
+    sessions            Session[]
+    accounts            Account[]
+    landlordProfiles    LandlordProfile?
+    tenantProfile       TenantProfile?
+    properties          Properties[]
+    viewingRequests     ViewingRequest[]
+    leases              Lease[]
+    reviews             Review[]
+    reviewsReceived     Review[]             @relation("ReviewTarget")
+    chatMessages        ChatMessage[]
+    paymentsInitiated   Payments[]           @relation("PaymentInitiator")
+    paymentsReceived    Payments[]           @relation("PaymentReceiver")
+    maintenanceRequests MaintenanceRequest[]
+    notifications       Notification[]
+    securityDeposits    SecurityDeposit[]
+
+    @@unique([email])
+    @@index([status])
+    @@index([role])
+    @@map("users")
+}
+
+model LandlordProfile {
+    id                   String    @id
+    userId               String    @unique
+    companyName          String?
+    phoneNumber          String
+    alternatePhoneNumber String?
+    nationalId           String
+    nationalIdVerified   Boolean   @default(false)
+    payoutAccount        Json      @db.JsonB
+    taxId                String?
+    dateOfBirth          DateTime
+    address              String?
+    city                 String?
+    country              String?
+    postalCode           String?
+    verified             Boolean   @default(false)
+    verifiedAt           DateTime?
+    createdAt            DateTime  @default(now())
+    updatedAt            DateTime  @updatedAt
+    user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([verified])
+    @@map("landlord_profiles")
+}
+
+model TenantProfile {
+    id                   String    @id
+    userId               String    @unique
+    phoneNumber          String
+    alternatePhoneNumber String?
+    nationalId           String
+    nationalIdVerified   Boolean   @default(false)
+    dateOfBirth          DateTime
+    occupation           String
+    employerName         String?
+    employmentStartDate  DateTime?
+    currentAddress       String
+    city                 String?
+    country              String?
+    postalCode           String?
+    monthlyIncome        Decimal   @db.Decimal(10, 2)
+    emergencyContact     Json      @db.JsonB
+    creditScore          Int?
+    verified             Boolean   @default(false)
+    verifiedAt           DateTime?
+    createdAt            DateTime  @default(now())
+    updatedAt            DateTime  @updatedAt
+    user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([verified])
+    @@map("tenant_profiles")
+}

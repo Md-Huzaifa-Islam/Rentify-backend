@@ -1,0 +1,44 @@
+// ============================================
+// Notification System
+// ============================================
+
+enum NotificationType {
+    payment_due         @map("PAYMENT_DUE")
+    payment_received    @map("PAYMENT_RECEIVED")
+    payment_overdue     @map("PAYMENT_OVERDUE")
+    lease_expiring      @map("LEASE_EXPIRING")
+    lease_expired       @map("LEASE_EXPIRED")
+    viewing_request     @map("VIEWING_REQUEST")
+    viewing_confirmed   @map("VIEWING_CONFIRMED")
+    maintenance_request @map("MAINTENANCE_REQUEST")
+    maintenance_update  @map("MAINTENANCE_UPDATE")
+    review_received     @map("REVIEW_RECEIVED")
+    message_received    @map("MESSAGE_RECEIVED")
+    security_deposit    @map("SECURITY_DEPOSIT")
+    lease_signed        @map("LEASE_SIGNED")
+    system              @map("SYSTEM")
+    other               @map("OTHER")
+}
+
+model Notification {
+    id          String           @id
+    userId      String
+    type        NotificationType
+    title       String
+    message     String
+    data        Json?            @db.JsonB // Additional context data
+    isRead      Boolean          @default(false)
+    readAt      DateTime?
+    actionUrl   String?
+    actionLabel String?
+    expiresAt   DateTime?
+    createdAt   DateTime         @default(now())
+    updatedAt   DateTime         @updatedAt
+    user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([isRead])
+    @@index([type])
+    @@index([createdAt])
+    @@map("notifications")
+}

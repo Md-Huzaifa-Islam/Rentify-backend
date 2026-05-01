@@ -1,0 +1,39 @@
+// ============================================
+// Property Viewing Requests
+// ============================================
+
+enum ViewingRequestStatus {
+    pending   @map("PENDING")
+    confirmed @map("CONFIRMED")
+    completed @map("COMPLETED")
+    cancelled @map("CANCELLED")
+    noshow    @map("NOSHOW")
+}
+
+model ViewingRequest {
+    id                 String               @id
+    unitId             String
+    userId             String
+    requestedDate      DateTime
+    requestedTime      String // Store as time string or specific time slot
+    alternateDate      DateTime?
+    alternateTime      String?
+    status             ViewingRequestStatus @default(pending)
+    notes              String?
+    landlordNotes      String?
+    confirmedDate      DateTime?
+    confirmedTime      String?
+    completedAt        DateTime?
+    cancelledAt        DateTime?
+    cancellationReason String?
+    createdAt          DateTime             @default(now())
+    updatedAt          DateTime             @updatedAt
+    unit               Unit                 @relation(fields: [unitId], references: [id], onDelete: Cascade)
+    user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([unitId])
+    @@index([userId])
+    @@index([status])
+    @@index([requestedDate])
+    @@map("viewing_requests")
+}

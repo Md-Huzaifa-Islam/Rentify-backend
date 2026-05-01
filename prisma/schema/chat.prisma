@@ -1,0 +1,46 @@
+// ============================================
+// Chat & Messaging System
+// ============================================
+
+model ChatMessage {
+    id                     String                  @id
+    senderId               String
+    leaseId                String
+    parentId               String?
+    message                String?
+    isRead                 Boolean                 @default(false)
+    readAt                 DateTime?
+    isEdited               Boolean                 @default(false)
+    editedAt               DateTime?
+    isDeleted              Boolean                 @default(false)
+    deletedAt              DateTime?
+    createdAt              DateTime                @default(now())
+    updatedAt              DateTime                @updatedAt
+    parent                 ChatMessage?            @relation("ChatMessageReplies", fields: [parentId], references: [id], onDelete: Cascade)
+    replies                ChatMessage[]           @relation("ChatMessageReplies")
+    lease                  Lease                   @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+    sender                 User                    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+    chatMessageAttachments ChatMessageAttachment[]
+
+    @@index([senderId])
+    @@index([leaseId])
+    @@index([isRead])
+    @@index([createdAt])
+    @@map("chat_messages")
+}
+
+model ChatMessageAttachment {
+    id        String         @id
+    messageId String
+    url       String
+    filename  String?
+    fileSize  Int?
+    mimeType  String?
+    type      AttachmentType @default(other)
+    createdAt DateTime       @default(now())
+    updatedAt DateTime       @updatedAt
+    message   ChatMessage    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+    @@index([messageId])
+    @@map("chat_message_attachments")
+}

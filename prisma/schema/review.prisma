@@ -1,0 +1,33 @@
+// ============================================
+// Reviews & Ratings
+// ============================================
+
+model Review {
+    id           String   @id
+    leaseId      String
+    reviewerId   String
+    targetId     String // User being reviewed (landlord or tenant)
+    parentId     String? // For threaded replies
+    rating       Int // 1-5
+    comment      String?
+    isPublic     Boolean  @default(true)
+    isVerified   Boolean  @default(false) // Verified tenant/landlord
+    helpfulCount Int      @default(0)
+    reportCount  Int      @default(0)
+    isHidden     Boolean  @default(false)
+    hiddenReason String?
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+    lease        Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+    reviewer     User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+    target       User     @relation("ReviewTarget", fields: [targetId], references: [id], onDelete: Cascade)
+    parent       Review?  @relation("ReviewReplies", fields: [parentId], references: [id], onDelete: Cascade)
+    replies      Review[] @relation("ReviewReplies")
+
+    @@index([leaseId])
+    @@index([reviewerId])
+    @@index([targetId])
+    @@index([rating])
+    @@index([isPublic])
+    @@map("reviews")
+}

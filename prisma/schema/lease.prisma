@@ -1,0 +1,72 @@
+// ============================================
+// Lease & Rental Agreements
+// ============================================
+
+enum LeaseStatus {
+    draft      @map("DRAFT")
+    pending    @map("PENDING")
+    active     @map("ACTIVE")
+    expired    @map("EXPIRED")
+    terminated @map("TERMINATED")
+    renewed    @map("RENEWED")
+}
+
+enum LeaseTerminationReason {
+    lease_end          @map("LEASE_END")
+    early_termination  @map("EARLY_TERMINATION")
+    eviction           @map("EVICTION")
+    mutual_agreement   @map("MUTUAL_AGREEMENT")
+    breach_of_contract @map("BREACH_OF_CONTRACT")
+    other              @map("OTHER")
+}
+
+model Lease {
+    id                    String                  @id
+    unitId                String
+    tenantId              String
+    leaseNumber           String                  @unique
+    status                LeaseStatus             @default(draft)
+    startDate             DateTime
+    endDate               DateTime
+    monthlyRent           Decimal                 @db.Decimal(10, 2)
+    securityDeposit       Decimal                 @db.Decimal(10, 2)
+    securityDepositPaid   Boolean                 @default(false)
+    paymentDueDay         Int                     @default(1) // Day of month (1-31)
+    lateFeePercentage     Decimal?                @db.Decimal(5, 2)
+    lateFeeGracePeriod    Int                     @default(3) // days
+    lateFeeFlatAmount     Decimal?                @db.Decimal(10, 2)
+    earlyTerminationFee   Decimal?                @db.Decimal(10, 2)
+    autoRenew             Boolean                 @default(false)
+    renewalNoticePeriod   Int                     @default(60) // days
+    terms                 Json                    @db.JsonB // Lease terms and conditions
+    specialConditions     String?
+    utilitiesIncluded     Json?                   @db.JsonB
+    signedByTenant        Boolean                 @default(false)
+    signedByLandlord      Boolean                 @default(false)
+    tenantSignedAt        DateTime?
+    landlordSignedAt      DateTime?
+    tenantSignature       String?
+    landlordSignature     String?
+    activatedAt           DateTime?
+    terminatedAt          DateTime?
+    terminationReason     LeaseTerminationReason?
+    terminationNotes      String?
+    createdAt             DateTime                @default(now())
+    updatedAt             DateTime                @updatedAt
+    unit                  Unit                    @relation(fields: [unitId], references: [id], onDelete: Restrict)
+    tenant                User                    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+    paymentSchedules      PaymentSchedule[]
+    payments              Payments[]
+    securityDepositRecord SecurityDeposit?
+    reviews               Review[]
+    chatMessages          ChatMessage[]
+    maintenanceRequests   MaintenanceRequest[]
+
+    @@index([unitId])
+    @@index([tenantId])
+    @@index([status])
+    @@index([startDate])
+    @@index([endDate])
+    @@index([leaseNumber])
+    @@map("leases")
+}
