@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "src/**/*.ts": {
+      "includeFiles": [
+        "node_modules/better-auth/**",
+        "node_modules/.pnpm/better-auth@*/node_modules/better-auth/**"
+      ]
+    },
+    "src/**/*.js": {
+      "includeFiles": [
+        "node_modules/better-auth/**",
+        "node_modules/.pnpm/better-auth@*/node_modules/better-auth/**"
+      ]
+    }
+  }
+}
